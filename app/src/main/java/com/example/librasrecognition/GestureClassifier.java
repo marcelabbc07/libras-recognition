@@ -16,10 +16,6 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Classificador de gestos em Libras usando modelo .tflite treinado com imagens 224x224.
- * Carrega gesture_model.tflite e labels.txt dos assets.
- */
 public class GestureClassifier {
 
     private static final String MODEL_FILE = "gesture_model.tflite";
@@ -67,9 +63,25 @@ public class GestureClassifier {
         return list;
     }
 
-    /** Redimensiona para 224x224, normaliza 0-1 e retorna a letra prevista. */
+    public static final class GesturePrediction {
+        public final String label;
+        public final float confidence;
+        public final float margin;
+
+        GesturePrediction(String label, float confidence, float margin) {
+            this.label = label;
+            this.confidence = confidence;
+            this.margin = margin;
+        }
+    }
+
     public String predict(Bitmap bitmap) {
-        if (!loaded || interpreter == null || labels.isEmpty()) return "";
+        GesturePrediction p = predictWithScores(bitmap);
+        return p != null ? p.label : "";
+    }
+
+    public GesturePrediction predictWithScores(Bitmap bitmap) {
+        if (!loaded || interpreter == null || labels.isEmpty()) return null;
 
         Bitmap resized = Bitmap.createScaledBitmap(bitmap, IMG_SIZE, IMG_SIZE, true);
         ByteBuffer inputBuffer = ByteBuffer.allocateDirect(1 * IMG_SIZE * IMG_SIZE * NUM_CHANNELS * 4);
@@ -94,7 +106,15 @@ public class GestureClassifier {
         for (int i = 1; i < numClasses; i++) {
             if (output[0][i] > output[0][maxIdx]) maxIdx = i;
         }
-        return labels.get(maxIdx);
+        float secondBest = -1f;
+        for (int i = 0; i < numClasses; i++) {
+            if (i == maxIdx) continue;
+            if (output[0][i] > secondBest) secondBest = output[0][i];
+        }
+        float top = output[0][maxIdx];
+        float margin = numClasses > 1 ? top - secondBest : top;
+
+        return new GesturePrediction(labels.get(maxIdx), top, margin);
     }
 
     public boolean isLoaded() { return loaded; }

@@ -20,9 +20,18 @@ import java.nio.ByteBuffer;
 
 public class HandDetectionProcessor {
 
+    private static final int CLASSIFY_EVERY_N_FRAMES = 2;
+    private static final float MIN_CONFIDENCE = 0.45f;
+    private static final float MIN_MARGIN = 0.08f;
+    private static final int STREAK_TO_CONFIRM = 6;
+
     private Hands hands;
     private OnHandDetectionListener listener;
     private GestureClassifier gestureClassifier;
+    private int classifyFrameCounter;
+    private String confirmedGestureLabel = "";
+    private String streakLabel = "";
+    private int streakCount;
 
     public interface OnHandDetectionListener {
         void onHandDetected(HandsResult result);
@@ -70,8 +79,29 @@ public class HandDetectionProcessor {
                 int rotationDegrees = image.getImageInfo().getRotationDegrees();
                 bitmap = adjustBitmapOrientation(bitmap, rotationDegrees);
                 if (gestureClassifier != null && gestureClassifier.isLoaded()) {
-                    String label = gestureClassifier.predict(bitmap);
-                    listener.onGesturePredicted(label);
+                    classifyFrameCounter++;
+                    if (classifyFrameCounter % CLASSIFY_EVERY_N_FRAMES == 0) {
+                        GestureClassifier.GesturePrediction pred =
+                                gestureClassifier.predictWithScores(bitmap);
+                        if (pred != null
+                                && pred.confidence >= MIN_CONFIDENCE
+                                && pred.margin >= MIN_MARGIN) {
+                            if (pred.label.equals(streakLabel)) {
+                                streakCount++;
+                            } else {
+                                streakLabel = pred.label;
+                                streakCount = 1;
+                            }
+                            if (streakCount >= STREAK_TO_CONFIRM
+                                    && !pred.label.equals(confirmedGestureLabel)) {
+                                confirmedGestureLabel = pred.label;
+                                listener.onGesturePredicted(confirmedGestureLabel);
+                            }
+                        } else {
+                            streakCount = 0;
+                            streakLabel = "";
+                        }
+                    }
                 }
                 hands.send(bitmap, timestamp);
             } else {

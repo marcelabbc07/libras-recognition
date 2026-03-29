@@ -79,10 +79,8 @@ public class MainActivity extends AppCompatActivity implements HandDetectionProc
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build();
 
-        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), image -> {
-            handDetectionProcessor.processImageFrame(image);
-            image.close();
-        });
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), image ->
+                handDetectionProcessor.processImageFrame(image));
 
         cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
     }

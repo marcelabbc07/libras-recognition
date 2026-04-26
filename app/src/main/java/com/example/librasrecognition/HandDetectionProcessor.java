@@ -6,11 +6,12 @@ import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.YuvImage;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.camera.core.ImageProxy;
 
-import com.google.mediapipe.formats.proto.LandmarkProto;
 import com.google.mediapipe.solutions.hands.Hands;
 import com.google.mediapipe.solutions.hands.HandsOptions;
 import com.google.mediapipe.solutions.hands.HandsResult;
@@ -20,22 +21,14 @@ import java.nio.ByteBuffer;
 
 public class HandDetectionProcessor {
 
-    private static final int CLASSIFY_EVERY_N_FRAMES = 2;
-    private static final float MIN_CONFIDENCE = 0.45f;
-    private static final float MIN_MARGIN = 0.08f;
-    private static final int STREAK_TO_CONFIRM = 6;
-
     private Hands hands;
     private OnHandDetectionListener listener;
     private GestureClassifier gestureClassifier;
-    private int classifyFrameCounter;
-    private String confirmedGestureLabel = "";
-    private String streakLabel = "";
-    private int streakCount;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public interface OnHandDetectionListener {
         void onHandDetected(HandsResult result);
-        void onGesturePredicted(String label);
+        void onGesturePredicted(GestureClassifier.GesturePrediction pred);
     }
 
     public HandDetectionProcessor(Context context, OnHandDetectionListener listener) {
@@ -60,11 +53,7 @@ public class HandDetectionProcessor {
             if (handsResult.multiHandLandmarks().isEmpty()) {
                 Log.d("HandDetectionProcessor", "Nenhuma mão detectada");
             } else {
-                listener.onHandDetected(handsResult);
-                for (LandmarkProto.NormalizedLandmark landmark :
-                        handsResult.multiHandLandmarks().get(0).getLandmarkList()) {
-                    Log.d("HandDetectionProcessor", String.format("Landmark: x=%.2f, y=%.2f", landmark.getX(), landmark.getY()));
-                }
+                mainHandler.post(() -> listener.onHandDetected(handsResult));
             }
         });
 
@@ -72,35 +61,23 @@ public class HandDetectionProcessor {
     }
 
     public void processImageFrame(ImageProxy image) {
-        if (hands != null && image != null) {
+        if (image == null) {
+            return;
+        }
+        long timestamp = image.getImageInfo().getTimestamp();
+        Log.d("HandDetectionProcessor", "processImageFrame START thread=" + Thread.currentThread().getName() + " ts=" + timestamp);
+
+        if (hands != null) {
             Bitmap bitmap = imageProxyToBitmap(image);
-            long timestamp = image.getImageInfo().getTimestamp();
             if (bitmap != null) {
                 int rotationDegrees = image.getImageInfo().getRotationDegrees();
                 bitmap = adjustBitmapOrientation(bitmap, rotationDegrees);
                 if (gestureClassifier != null && gestureClassifier.isLoaded()) {
-                    classifyFrameCounter++;
-                    if (classifyFrameCounter % CLASSIFY_EVERY_N_FRAMES == 0) {
-                        GestureClassifier.GesturePrediction pred =
-                                gestureClassifier.predictWithScores(bitmap);
-                        if (pred != null
-                                && pred.confidence >= MIN_CONFIDENCE
-                                && pred.margin >= MIN_MARGIN) {
-                            if (pred.label.equals(streakLabel)) {
-                                streakCount++;
-                            } else {
-                                streakLabel = pred.label;
-                                streakCount = 1;
-                            }
-                            if (streakCount >= STREAK_TO_CONFIRM
-                                    && !pred.label.equals(confirmedGestureLabel)) {
-                                confirmedGestureLabel = pred.label;
-                                listener.onGesturePredicted(confirmedGestureLabel);
-                            }
-                        } else {
-                            streakCount = 0;
-                            streakLabel = "";
-                        }
+                    GestureClassifier.GesturePrediction pred =
+                            gestureClassifier.predictWithScores(bitmap);
+                    if (pred != null) {
+                        Log.d("HandDetectionProcessor", "pred label=" + pred.label + " conf=" + pred.confidence);
+                        mainHandler.post(() -> listener.onGesturePredicted(pred));
                     }
                 }
                 hands.send(bitmap, timestamp);
@@ -145,12 +122,6 @@ public class HandDetectionProcessor {
         matrix.postScale(-1, 1);
 
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-    }
-
-    public void start() {
-        if (hands == null) {
-            Log.e("HandDetectionProcessor", "MediaPipe Hands não está inicializado.");
-        }
     }
 
     public void stop() {

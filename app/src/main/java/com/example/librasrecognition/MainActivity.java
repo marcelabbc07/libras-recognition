@@ -21,6 +21,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mediapipe.solutions.hands.HandsResult;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements HandDetectionProcessor.OnHandDetectionListener {
 
@@ -31,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements HandDetectionProc
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private HandDetectionProcessor handDetectionProcessor;
     private GestureClassifier gestureClassifier;
+    private ExecutorService cameraAnalysisExecutor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +43,8 @@ public class MainActivity extends AppCompatActivity implements HandDetectionProc
         previewView = findViewById(R.id.previewView);
         handOverlayView = findViewById(R.id.handOverlayView);
         gestureTextView = findViewById(R.id.gestureTextView);
+
+        cameraAnalysisExecutor = Executors.newSingleThreadExecutor();
 
         gestureClassifier = new GestureClassifier(this);
         handDetectionProcessor = new HandDetectionProcessor(this, this, gestureClassifier);
@@ -79,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements HandDetectionProc
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build();
 
-        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), image ->
+        imageAnalysis.setAnalyzer(cameraAnalysisExecutor, image ->
                 handDetectionProcessor.processImageFrame(image));
 
         cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
@@ -93,9 +98,10 @@ public class MainActivity extends AppCompatActivity implements HandDetectionProc
     }
 
     @Override
-    public void onGesturePredicted(String label) {
+    public void onGesturePredicted(GestureClassifier.GesturePrediction pred) {
         if (gestureTextView != null) {
-            gestureTextView.setText("Gesto: " + (label != null && !label.isEmpty() ? label : "—"));
+            String label = (pred != null && pred.label != null && !pred.label.isEmpty()) ? pred.label : "—";
+            gestureTextView.setText("Gesto: " + label);
         }
     }
 
@@ -114,9 +120,14 @@ public class MainActivity extends AppCompatActivity implements HandDetectionProc
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        handDetectionProcessor.stop();
+        if (handDetectionProcessor != null) {
+            handDetectionProcessor.stop();
+        }
         if (gestureClassifier != null) {
             gestureClassifier.close();
+        }
+        if (cameraAnalysisExecutor != null) {
+            cameraAnalysisExecutor.shutdown();
         }
     }
 }

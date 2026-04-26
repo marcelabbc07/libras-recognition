@@ -35,3 +35,31 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# --- YOLO (yolo-train) ---
+yolo-train/venv/
+yolo-train/.venv/
+.venv/
+venv/
+
+yolo-train/**/runs/
+yolo-train/runs/
+wandb/
+
+yolo-train/**/*.pt
+yolo-train/**/*.pth
+yolo-train/**/*.onnx
+
+**/best_saved_model/
+
+yolo-train/**/*.avi
+yolo-train/**/*.mp4
+
+yolo-train/dataset/**/train/images/
+yolo-train/dataset/**/valid/images/
+yolo-train/dataset/**/test/images/
+yolo-train/dataset/**/train/labels/
+yolo-train/dataset/**/valid/labels/
+yolo-train/dataset/**/test/labels/
+yolo-train/dataset/**/*.npy
+yolo-train/dataset/**/labels.cache

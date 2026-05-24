@@ -1,3 +1,20 @@
 <resources>
-    <string name="app_name">LibrasRecognition</string>
+    <string name="app_name">LibrasApp</string>
+    <string name="gesto_placeholder">Gesto: \u2015</string>    
+    <string name="switch_camera">Trocar câmera</string>
+    <string name="permission_denied_toast">Permissão de câmera negada</string>
+    <string name="camera_bind_error">Não foi possível iniciar a câmera</string>
+    <string name="menu_help">Ajuda</string>
+    <string name="title_help">Ajuda</string>
+    <string name="help_body"><![CDATA[
+1. O que é o LibrasApp?\nÉ um app para reconhecer gestos de Libras pela câmera do celular.\n\n
+2. Preciso de internet?\nO reconhecimento roda no aparelho; internet só seria necessária se você adicionar recursos online.\n\n
+3. Por que pedir acesso à câmera?\nPara capturar o vídeo da mão e estimar os pontos do gesto.\n\n
+4. Como posicionar a mão?\nMantenha a mão inteira visível, com boa luz e fundo contrastante.\n\n
+5. O que significa cada gesto?\nDepende do conjunto de sinais treinado no modelo; consulte a lista de gestos suportados.\n\n
+6. O que são os pontos na mão?\nSão landmarks do rastreamento (articulações) usados para classificar o gesto.\n\n
+7. Como trocar a câmera?\nUse o botão circular com ícone de troca no canto do preview.\n\n
+8. Privacidade\nO processamento pode ser feito localmente; não envie vídeo sem consentimento.\n\n
+9. Problemas comuns\nMelhore a luz, afaste reflexos e verifique se a permissão da câmera está concedida.
+    ]]></string>
 </resources>

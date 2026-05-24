@@ -50,11 +50,13 @@ public class HandDetectionProcessor {
                         .build());
 
         hands.setResultListener(handsResult -> {
-            if (handsResult.multiHandLandmarks().isEmpty()) {
-                Log.d("HandDetectionProcessor", "Nenhuma mão detectada");
-            } else {
-                mainHandler.post(() -> listener.onHandDetected(handsResult));
-            }
+            Log.d("HandDetectionProcessor", "Nenhuma mão detectada");
+                mainHandler.post(() -> {
+                listener.onHandDetected(handsResult);
+                if (handsResult.multiHandLandmarks().isEmpty()) {
+                    listener.onGesturePredicted(null);
+                }
+            });
         });
 
         hands.setErrorListener((message, e) -> Log.e("HandDetectionProcessor", "Erro no MediaPipe Hands: " + message, e));

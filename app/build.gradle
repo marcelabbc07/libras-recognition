@@ -43,4 +43,5 @@ dependencies {
     implementation libs.camerax.lifecycle
     implementation libs.mediapipe
     implementation libs.tflite
+    implementation 'androidx.coordinatorlayout:coordinatorlayout:1.2.0'
 }

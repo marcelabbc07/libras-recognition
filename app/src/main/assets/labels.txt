@@ -1,9 +1,11 @@
 A
+Ajuda
 B
 C
-D1
-D2
+Casa
+D
 E
+Eu te amo
 F
 G
 I
@@ -12,6 +14,7 @@ L
 M
 N
 O
+Oi
 P
 Q
 R

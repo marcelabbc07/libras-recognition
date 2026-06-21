@@ -33,7 +33,7 @@ public class GestureClassifier {
     private List<String> labels = new ArrayList<>();
     private boolean loaded;
     private boolean channelsFirst = true;
-    private int numClasses = 22;
+    private int numClasses = 25;
     private int numAnchors = 8400;
     private final Object interpreterLock = new Object();
 

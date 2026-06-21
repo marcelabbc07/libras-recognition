@@ -1,14 +1,13 @@
-path: C:/Users/marce/Downloads/LibrasRecognition/yolo-train/dataset
-train: ../train/images
-val: ../valid/images
-test: ../test/images
+path: .
+train: train/images
+val: valid/images
+test: test/images
 
-nc: 22
-names: ['A', 'B', 'C', 'D1', 'D2', 'E', 'F', 'G', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
-
+nc: 25
+names: ['A', 'Ajuda', 'B', 'C', 'Casa', 'D', 'E', 'Eu te amo', 'F', 'G', 'I', 'K', 'L', 'M', 'N', 'O', 'Oi', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
 roboflow:
-  workspace: personal-bu69s
-  project: libras-ih14i
-  version: 5
+  workspace: marcelas-workspace-ickc5
+  project: libras-ih14i-yslca
+  version: 2
   license: CC BY 4.0
-  url: https://universe.roboflow.com/personal-bu69s/libras-ih14i/dataset/5
+  url: https://app.roboflow.com/marcelas-workspace-ickc5/libras-ih14i-yslca/2

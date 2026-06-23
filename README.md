@@ -96,3 +96,12 @@ Os gestos seguem **`labels.txt`** (25 classes na versão atual). O `.tflite` e o
 | **Inferência lenta** | Aparelhos mais antigos têm GPU/CPU mais limitadas; boa iluminação e mão bem enquadrada ajudam. |
 
 ---
+
+## Documentação e treino
+
+| Ficheiro | Descrição |
+|----------|-----------|
+| [Plano de projeto (PDF)](docs/PPS.pdf) | Documentação académica do projeto |
+| [Resultados do treino YOLO](docs/training/results.csv) | Métricas por época (Ultralytics) |
+
+---
